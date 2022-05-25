@@ -19,7 +19,21 @@ try{
     await client.connect();
     const productsCollection = client.db('bike_parts').collection('products');
     const placeOrderCollection = client.db('bike_parts').collection('place_orders');
+    const userCollection = client.db('bike_parts').collection('users');
 
+
+
+    app.put('/user/:email', async(req, res)=>{
+        const email = req.params.email;
+        const user = req.body;
+        const filter = {email: email};
+        const options = {upsert: true};
+        const updateDoc = {
+            $set: user,
+        }
+        const result = await userCollection.updateOne(filter, updateDoc, options);
+        res.send(result)
+    })
     app.get('/products', async(req, res)=>{
         const query = {};
         const products = await productsCollection.find(query).toArray();
@@ -40,6 +54,13 @@ try{
         }
         const result = placeOrderCollection.insertOne(parts);
         res.send(result)
+    });
+    app.get('/place-order', async(req, res)=>{
+        const email = req.query.email;
+        console.log(email)
+        const query = {email: email};
+        const  order = await placeOrderCollection.find(query).toArray();
+        res.send(order)
     })
 }
 finally{
