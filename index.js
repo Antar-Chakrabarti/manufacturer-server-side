@@ -15,6 +15,21 @@ app.get('/', (req, res) => {
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.q3lvh.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next){
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'unauthorized' })
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+       /* if (err) {
+            return res.status(403).send({ message: 'forbidden' })
+        } */
+        req.decoded = decoded;
+        next();
+    });
+}
+
 async function run(){
 try{
     await client.connect();
@@ -37,6 +52,19 @@ try{
         const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '10d'})
         res.send({result, token})
     })
+    app.put('/user/admin/:email', async(req, res)=>{
+        const email = req.params.email;
+        const filter = {email: email};
+        const updateDoc = {
+            $set: {role: 'admin'},
+        }
+        const result = await userCollection.updateOne(filter, updateDoc);
+        res.send(result)
+    })
+    app.get('/user',verifyJWT, async(req, res)=>{
+        const result = await userCollection.find().toArray();
+        res.send(result)
+    })
     app.get('/products', async(req, res)=>{
         const query = {};
         const products = await productsCollection.find(query).toArray();
@@ -53,9 +81,8 @@ try{
         const result = await placeOrderCollection.insertOne(user);
         res.send(result)
     })
-    app.get('/place-order', async(req, res)=>{
+    app.get('/place-order', verifyJWT, async(req, res)=>{
         const email = req.query.email;
-        console.log(email)
         const query = {email: email};
         const  order = await placeOrderCollection.find(query).toArray();
         res.send(order)
@@ -63,6 +90,10 @@ try{
     app.post('/review', async(req, res)=>{
         const review = req.body;
         const result = await reviewCollection.insertOne(review);
+        res.send(result)
+    })
+    app.get('/review', async(req, res)=>{
+        const result = await reviewCollection.find().toArray();
         res.send(result)
     })
 }
