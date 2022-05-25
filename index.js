@@ -22,9 +22,9 @@ function verifyJWT(req, res, next){
     }
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
-       /* if (err) {
+       if (err) {
             return res.status(403).send({ message: 'forbidden' })
-        } */
+        }
         req.decoded = decoded;
         next();
     });
@@ -52,7 +52,7 @@ try{
         const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '10d'})
         res.send({result, token})
     })
-    app.put('/user/admin/:email', async(req, res)=>{
+    app.put('/user/admin/:email',/* verifyJWT, */ async(req, res)=>{
         const email = req.params.email;
         const filter = {email: email};
         const updateDoc = {
@@ -61,7 +61,13 @@ try{
         const result = await userCollection.updateOne(filter, updateDoc);
         res.send(result)
     })
-    app.get('/user',verifyJWT, async(req, res)=>{
+    app.get('/admin/:email', async(req, res)=>{
+        const email = req.params.email;
+        const user = await userCollection.findOne({email: email})
+        const isAdmin = user.role === 'admin';
+        res.send({admin: isAdmin})
+    })
+    app.get('/user',/* verifyJWT, */ async(req, res)=>{
         const result = await userCollection.find().toArray();
         res.send(result)
     })
@@ -73,7 +79,7 @@ try{
     app.get('/products/:id', async(req, res)=>{
         const id = req.params.id;
         const query = {_id: ObjectId(id)};
-        const product = await productsCollection.findOne(query)
+        const product = await productsCollection.find(query)
         res.send(product)
     })
     app.post('/place-order', async (req, res) => {
