@@ -47,7 +47,7 @@ try{
         const product = await productsCollection.findOne(query)
         res.send(product)
     })
-    app.post('/place-order/', async (req, res) => {
+    app.post('/place-order', async (req, res) => {
         const user = req.body;
         const result = await placeOrderCollection.insertOne(user);
         res.send(result)
