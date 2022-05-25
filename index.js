@@ -21,6 +21,7 @@ try{
     const productsCollection = client.db('bike_parts').collection('products');
     const placeOrderCollection = client.db('bike_parts').collection('place_orders');
     const userCollection = client.db('bike_parts').collection('users');
+    const reviewCollection = client.db('bike_parts').collection('review');
 
 
 
@@ -52,22 +53,17 @@ try{
         const result = await placeOrderCollection.insertOne(user);
         res.send(result)
     })
-    /* app.post('/place-order', async(req, res)=>{
-        const parts = req.body;
-        const query = {name: parts.name, email: parts.user}
-        const exists = await placeOrderCollection.findOne(query);
-        if(exists){
-            return res.send({success: false, parts: exists})
-        }
-        const result = placeOrderCollection.insertOne(parts);
-        res.send(result)
-    }); */
     app.get('/place-order', async(req, res)=>{
         const email = req.query.email;
         console.log(email)
         const query = {email: email};
         const  order = await placeOrderCollection.find(query).toArray();
         res.send(order)
+    });
+    app.post('/review', async(req, res)=>{
+        const review = req.body;
+        const result = await reviewCollection.insertOne(review);
+        res.send(result)
     })
 }
 finally{
