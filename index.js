@@ -71,16 +71,16 @@ try{
         const result = await userCollection.find().toArray();
         res.send(result)
     })
-    app.get('/user',/* verifyJWT, */ async(req, res)=>{
+    app.get('/user',verifyJWT, async(req, res)=>{
         const result = await userCollection.find().toArray();
         res.send(result)
     })
-    app.delete('/user/:email', async(req, res)=>{
+    /* app.delete('/user/:email', async(req, res)=>{
         const email = req.params.email;
         const filter = {email: email};
         const result = await userCollection.deleteOne(filter);
         res.send(result)
-    })
+    }) */
     app.get('/products', async(req, res)=>{
         const query = {};
         const products = await productsCollection.find(query).toArray();
